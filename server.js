@@ -20,9 +20,22 @@ const DATA_PATH = path.join(__dirname, "../blogjohn/data.json");
 
 const app = express();
 
+const allowedOrigins = [
+  "https://john-site-elenafl.amvera.io",
+  "http://localhost:5173", // Оставьте это для локальной разработки
+];
+
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: function (origin, callback) {
+      // Разрешаем запросы без origin (например, мобильные приложения или curl)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.indexOf(origin) !== -1) {
+        callback(null, true);
+      } else {
+        callback(new Error("Не разрешено CORS"));
+      }
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -80,7 +93,7 @@ const generateNewAdminPassword = () => {
 const strictDailyLimiter = rateLimit({
   windowMs: 24 * 60 * 60 * 1000,
   max: 5,
-  
+
   message: {
     error: "Вы уже отправляли запрос сегодня. Пожалуйста, попробуйте завтра.",
   },
@@ -198,7 +211,13 @@ app.post("/api/subscribe", strictDailyLimiter, async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: "3d" },
     );
-    const serverUrl = process.env.SERVER_URL || "http://localhost:5000";
+
+    // Код будет проверять, где он запущен
+    const serverUrl =
+      window.location.hostname === "localhost"
+        ? "http://localhost:5000"
+        : "https://portfolio-elenafl.amvera.io";
+    
     const approveLink = `${serverUrl}/api/moderate?token=${approveToken}&status=approve`;
     const rejectLink = `${serverUrl}/api/moderate?token=${rejectToken}&status=reject`;
     const moderationMailOptions = {
@@ -525,7 +544,7 @@ const authenticatetoken = (req, res, next) => {
 };
 
 // =========================================================
-// СОЗДАНИЕ ПОСТОВ И ЯНДЕКС-РАССЫЛКА 
+// СОЗДАНИЕ ПОСТОВ И ЯНДЕКС-РАССЫЛКА
 // =========================================================
 app.post("/api/posts", authenticatetoken, async (req, res) => {
   try {
