@@ -20,27 +20,12 @@ const DATA_PATH = path.join(__dirname, "../blogjohn/data.json");
 
 const app = express();
 
-const allowedOrigins = [
-  "https://john-site-elenafl.amvera.io",
-  "http://localhost:5173", // Оставьте это для локальной разработки
-];
-
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      // Разрешаем запросы без origin (например, мобильные приложения или curl)
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.indexOf(origin) !== -1) {
-        callback(null, true);
-      } else {
-        callback(new Error("Не разрешено CORS"));
-      }
-    },
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  }),
-);
+app.use(cors({
+  origin: '*',
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
 
 app.use(express.json());
 app.use(cookieParser());
