@@ -16,7 +16,7 @@ import https from "https";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const DATA_PATH = path.join(__dirname, "../blogjohn/data.json");
+const DATA_PATH = path.join(__dirname, "data.json");
 
 const app = express();
 
