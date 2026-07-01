@@ -10,20 +10,16 @@ import jwt from "jsonwebtoken";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import rateLimitTA_PATH = path.join(__dirname, "data", "data.json"); from "express-rate-limit";
+import rateLimit from "express-rate-limit";
 import crypto from "crypto";
 import https from "https";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Проверяем окружение: Amvera (Сеть) или локальный компьютер
+// ИСПРАВЛЕНО: В Сети (production) пишем в защищенную папку Amvera, локально — в корень проекта
 const isAmvera = process.env.AMVERA === 'true' || process.env.NODE_ENV === 'production';
-
-// В Сети берем изолированный корень /data, на компьютере — папку в проекте
-const DATA_PATH = isAmvera 
-  ? "/data/data.json" 
-  : path.join(__dirname, "data", "data.json");
+const DATA_PATH = isAmvera ? "/data/data.json" : path.join(__dirname, "data", "data.json");
 
 const app = express();
 
