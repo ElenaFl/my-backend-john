@@ -17,9 +17,20 @@ import https from "https";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// ИСПРАВЛЕНО: В Сети (production) пишем в защищенную папку Amvera, локально — в корень проекта
+const isAmvera =
+  process.env.AMVERA === "true" || process.env.NODE_ENV === "production";
+
 const isAmvera = process.env.AMVERA === 'true' || process.env.NODE_ENV === 'production';
-const DATA_PATH = isAmvera ? "/data/data.json" : path.join(__dirname, "data", "data.json");
+const DATA_PATH = isAmvera ? "/data/data.json" : path.join(__dirname, "data.json");
+
+// АВТОСОЗДАНИЕ: Если файла нет, создаем его перед чтением/записью
+if (!fs.existsSync(DATA_PATH)) {
+  // На Amvera берем шаблон, локально можно просто создать пустой массив
+  const templatePath = path.join(__dirname, "data.template.json");
+  const defaultData = fs.existsSync(templatePath) ? fs.readFileSync(templatePath, 'utf8') : '[]';
+  
+  fs.writeFileSync(DATA_PATH, defaultData, 'utf8');
+}
 
 const app = express();
 
