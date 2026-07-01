@@ -18,9 +18,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // ИСПРАВЛЕНО: В Сети (production) пишем в защищенную папку Amvera, локально — в корень проекта
-const DATA_PATH = process.env.NODE_ENV === "production"
-  ? "/data/data.json"
-  : path.join(__dirname, "data.json");
+const DATA_PATH = path.join(__dirname, "data", "data.json");
 
 const app = express();
 
