@@ -16,7 +16,11 @@ import https from "https";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const DATA_PATH = path.join(__dirname, "data.json");
+
+// ИСПРАВЛЕНО: В Сети (production) пишем в защищенную папку Amvera, локально — в корень проекта
+const DATA_PATH = process.env.NODE_ENV === "production"
+  ? "/data/data.json"
+  : path.join(__dirname, "data.json");
 
 const app = express();
 
@@ -206,10 +210,12 @@ app.post("/api/subscribe", strictDailyLimiter, async (req, res) => {
     );
 
     // Код будет проверять, где он запущен
-    const serverUrl =
-      window.location.hostname === "localhost"
-        ? "http://localhost:5000"
-        : "https://portfolio-elenafl.amvera.io";
+    // ИСПРАВЛЕНО: бэкенд проверяет свою среду через process.env.NODE_ENV
+    const isProduction = process.env.NODE_ENV === "production";
+
+    const serverUrl = isProduction
+      ? "https://portfolio-elenafl.amvera.io" // Адрес в Сети
+      : "http://localhost:5000"; // Локальный адрес
 
     const approveLink = `${serverUrl}/api/moderate?token=${approveToken}&status=approve`;
     const rejectLink = `${serverUrl}/api/moderate?token=${rejectToken}&status=reject`;
@@ -224,6 +230,7 @@ app.post("/api/subscribe", strictDailyLimiter, async (req, res) => {
       .status(200)
       .json({ success: true, message: "Заявка отправлена на модерацию!" });
   } catch (error) {
+    console.error("❌ Ошибка в роуте подписки:", error);
     return res.status(500).json({ error: "Внутренняя ошибка сервера" });
   }
 });
