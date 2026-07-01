@@ -17,9 +17,6 @@ import https from "https";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const isAmvera =
-  process.env.AMVERA === "true" || process.env.NODE_ENV === "production";
-
 const isAmvera = process.env.AMVERA === 'true' || process.env.NODE_ENV === 'production';
 const DATA_PATH = isAmvera ? "/data/data.json" : path.join(__dirname, "data.json");
 
