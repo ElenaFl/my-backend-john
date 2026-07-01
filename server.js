@@ -20,12 +20,20 @@ const DATA_PATH = path.join(__dirname, "data.json");
 
 const app = express();
 
-app.use(cors({
-  origin: '*',
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+// 1. Динамически определяем адрес фронтенда (Vercel в Сети или localhost на компьютере)
+const allowedOrigin = process.env.CLIENT_URL || "http://localhost:5173";
+
+// 2. CORS (сам обработает все OPTIONS запросы)
+app.use(
+  cors({
+    origin: allowedOrigin,
+    credentials: true, // Позволяет браузеру принимать и передавать куку admin_session
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    preflightContinue: false, // Библиотека CORS сама ответит на OPTIONS статус 204/200
+    optionsSuccessStatus: 200, // Для старых браузеров
+  }),
+);
 
 app.use(express.json());
 app.use(cookieParser());
@@ -202,7 +210,7 @@ app.post("/api/subscribe", strictDailyLimiter, async (req, res) => {
       window.location.hostname === "localhost"
         ? "http://localhost:5000"
         : "https://portfolio-elenafl.amvera.io";
-    
+
     const approveLink = `${serverUrl}/api/moderate?token=${approveToken}&status=approve`;
     const rejectLink = `${serverUrl}/api/moderate?token=${rejectToken}&status=reject`;
     const moderationMailOptions = {
@@ -377,11 +385,20 @@ app.post("/api/admin/login", adminLoginLimiter, async (req, res) => {
       const token = jwt.sign({ role: "admin" }, process.env.JWT_SECRET, {
         expiresIn: "2h",
       });
+
+      // Проверяем, запущен ли сервер в Сети (в Amvera NODE_ENV равен "production")
+      const isProduction = process.env.NODE_ENV === "production";
+
       res.cookie("admin_session", token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        maxAge: 2 * 60 * 60 * 1000,
+        maxAge: 2 * 60 * 60 * 1000, // 2 часа
+
+        // ДИНАМИЧЕСКИЕ НАСТРОЙКИ БЕЗОПАСНОСТИ:
+        secure: isProduction, // В Сети (HTTPS) — true, на localhost (HTTP) — false
+
+        // КРИТИЧЕСКИ ВАЖНО ДЛЯ СВЯЗКИ VERCEL + AMVERA:
+        // В Сети используем 'none' (разрешает кросс-доменные куки), на компьютере — 'lax'
+        sameSite: isProduction ? "none" : "lax",
       });
       generateNewAdminPassword();
       return res.json({ success: true, message: "Авторизация успешна" });
