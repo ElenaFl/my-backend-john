@@ -1,0 +1,47 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+datasource db {
+  provider = "sqlite"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Структура для постов
+model Post {
+  id          Int      @id @default(autoincrement())
+  title       String
+  img         String
+  date        String
+  tags        String   // массив тегов как JSON-строка
+  description String
+}
+
+// Универсальная структура для всех видов работ (works)
+model Work {
+  id          Int      @id @default(autoincrement())
+  title       String
+  img         String   // Главная обложка работы  
+  date        String
+  tags        String   // Храним массив тегов как JSON-строку
+  description String
+
+  // Специфические поля (сделаны необязательными с помощью "?")
+  gallery         Json?  // Сюда будем записывать массив картинок галереи как JSON-строку
+  videoSrc        String?  // Ссылка на видео, если оно есть
+  detailVideoSrc  String?
+  sectionTitle    String?
+  processText     String?
+  projectLink     String?  // Ссылка на сам проект/сайт, если есть
+}
+
+// Структура для подписчиков
+model Subscribers {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  status    String
+  createdAt DateTime @default(now())
+}
