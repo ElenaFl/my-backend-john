@@ -32,7 +32,10 @@ const app = express();
 
 
 // 1. Динамически определяем адрес фронтенда (Vercel в Сети или localhost на компьютере)
-const allowedOrigin = process.env.CLIENT_URL || "http://localhost:5173";
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://blog-john.vercel.app"
+];
 
 // 2. CORS (сам обработает все OPTIONS запросы)
 app.use(
