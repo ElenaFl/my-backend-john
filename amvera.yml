@@ -1,0 +1,9 @@
+meta:
+  environment: nodejs
+  toolchain:
+    name: npm
+    version: "22"
+build: {}
+run:
+  persistenceMount: /data
+  containerPort: 5000
