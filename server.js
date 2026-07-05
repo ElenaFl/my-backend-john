@@ -40,7 +40,7 @@ const allowedOrigins = [
 // 2. CORS (сам обработает все OPTIONS запросы)
 app.use(
   cors({
-    origin: allowedOrigin,
+    origin: allowedOrigins,
     credentials: true, // Позволяет браузеру принимать и передавать куку admin_session
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
