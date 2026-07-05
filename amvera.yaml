@@ -4,10 +4,10 @@ meta:
     name: npm
     version: 22
 build:
-  requirements:
-    - package.json
-  steps:
-    - npm install
+  additionalCommands:
     - npx prisma generate
 run:
-  script: node server.js
+  command: npx prisma db push && node server.js
+  persistence:
+    - mountPoint: /data
+      directory: data
