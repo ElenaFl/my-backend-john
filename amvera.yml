@@ -1,0 +1,13 @@
+meta:
+  environment: node
+  toolchain:
+    name: npm
+    version: 22
+build:
+  requirements:
+    - package.json
+  steps:
+    - npm install
+    - npx prisma generate
+run:
+  script: node server.js
