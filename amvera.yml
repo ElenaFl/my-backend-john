@@ -2,7 +2,7 @@ meta:
   environment: nodejs
   toolchain:
     name: npm
-    version: "20"
+    version: "22"
 build:
   skip: false
   additionalCommands: npx prisma generate
@@ -12,6 +12,6 @@ run:
   scriptName: server.js
   scriptArguments: null
   nodeArguments: null
-  command: sh -c "npx prisma db push && node server.js"
+  command: npx prisma db push && node server.js
   persistenceMount: /data
   containerPort: "5000"

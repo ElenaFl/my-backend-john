@@ -23,8 +23,7 @@ try {
 import { createClient } from "@libsql/client";
 import { PrismaLibSql } from "@prisma/adapter-libsql";
 
-// Меняем путь с "file:./prisma/dev.db" на постоянный диск Amvera
-const db = createClient({ url: "file:/data/dev.db" });
+const db = createClient({ url: "file:./prisma/dev.db" });
 const adapter = new PrismaLibSql(db);
 const prisma = new PrismaClient({ adapter });
 
