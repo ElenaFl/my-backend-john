@@ -1,8 +1,3 @@
-import { createClient } from "@libsql/client";
-
-// Подключаемся к базе напрямую как к файлу
-const db = createClient({ url: "file:./prisma/dev.db" });
-
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -14,14 +9,19 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import rateLimit from "express-rate-limit";
 import crypto from "crypto";
-import { PrismaClient } from "@prisma/client";
+
+// Безопасный ESM-импорт для CommonJS-модуля Prisma
+import pkg from "@prisma/client";
+const { PrismaClient } = pkg;
+
+import { createClient } from "@libsql/client";
 import { PrismaLibSql } from "@prisma/adapter-libsql";
 
 // 0.1. Создаем стандартный клиент LibSQL
 const libsqlClient = createClient({ url: "file:./prisma/dev.db" });
 const adapter = new PrismaLibSql(libsqlClient);
 
-// 0.2. Инициализируем Prisma Client — строго по спецификации
+// 0.2. Инициализируем Prisma Client
 const prisma = new PrismaClient({ adapter });
 
 export { prisma };
