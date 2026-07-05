@@ -5,9 +5,7 @@ meta:
     version: 22
 
 build:
-  steps:
-    - npm install
-    - npx prisma generate
+  command: npm install && npx prisma generate
 
 deploy:
   command: npx prisma db push && node server.js
