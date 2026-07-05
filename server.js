@@ -10,18 +10,22 @@ import jwt from "jsonwebtoken";
 import rateLimit from "express-rate-limit";
 import crypto from "crypto";
 
-// Безопасный ESM-импорт для CommonJS-модуля Prisma
-import pkg from "@prisma/client";
-const { PrismaClient } = pkg;
+// Гибридный импорт Prisma Client для поддержки ESM и CommonJS окружений
+let PrismaClient;
+try {
+  const pkg = await import("@prisma/client");
+  PrismaClient = pkg.PrismaClient || pkg.default.PrismaClient;
+} catch (e) {
+  const { PrismaClient: LocalClient } = await import("@prisma/client");
+  PrismaClient = LocalClient;
+}
 
 import { createClient } from "@libsql/client";
 import { PrismaLibSql } from "@prisma/adapter-libsql";
 
-// 0.1. Создаем стандартный клиент LibSQL
-const libsqlClient = createClient({ url: "file:./prisma/dev.db" });
-const adapter = new PrismaLibSql(libsqlClient);
-
-// 0.2. Инициализируем Prisma Client
+// Восстанавливаем переменную db, которую вызывают маршруты ниже
+const db = createClient({ url: "file:./prisma/dev.db" });
+const adapter = new PrismaLibSql(db);
 const prisma = new PrismaClient({ adapter });
 
 export { prisma };
