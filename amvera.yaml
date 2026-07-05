@@ -7,4 +7,4 @@ build:
   additionalCommands:
     - npx prisma generate
 run:
-  command: npx prisma db push && node server.js
+  command: node server.js
