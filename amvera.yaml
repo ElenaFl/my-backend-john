@@ -4,8 +4,5 @@ meta:
     name: npm
     version: 22
 
-build:
-  args: npx prisma generate
-
 deploy:
   command: npx prisma db push && node server.js
