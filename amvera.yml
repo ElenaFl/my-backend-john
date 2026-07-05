@@ -12,6 +12,6 @@ run:
   scriptName: server.js
   scriptArguments: null
   nodeArguments: null
-  command: DATABASE_URL="file:/data/dev.db" npx prisma db push && node server.js
+  command: npx prisma db push && node server.js
   persistenceMount: /data
   containerPort: "5000"
