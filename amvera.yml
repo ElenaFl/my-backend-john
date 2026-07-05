@@ -1,0 +1,17 @@
+meta:
+  environment: nodejs
+  toolchain:
+    name: npm
+    version: "20"
+build:
+  skip: false
+  additionalCommands: npx prisma generate
+  artifacts:
+    "*": /
+run:
+  scriptName: server.js
+  scriptArguments: null
+  nodeArguments: null
+  command: null
+  persistenceMount: /data
+  containerPort: "5000"
