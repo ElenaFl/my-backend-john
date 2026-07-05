@@ -1,8 +1,0 @@
-meta:
-  environment: node
-  toolchain:
-    name: npm
-    version: 22
-
-deploy:
-  command: npx prisma db push && node server.js
