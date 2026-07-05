@@ -23,12 +23,13 @@ try {
 import { createClient } from "@libsql/client";
 import { PrismaLibSql } from "@prisma/adapter-libsql";
 
-const db = createClient({ url: "file:./prisma/dev.db" });
+const db = createClient({ url: "file:/data/dev.db" });
 const adapter = new PrismaLibSql(db);
 const prisma = new PrismaClient({ adapter });
 
 export { prisma };
 const app = express();
+
 
 // 1. Динамически определяем адрес фронтенда (Vercel в Сети или localhost на компьютере)
 const allowedOrigin = process.env.CLIENT_URL || "http://localhost:5173";
