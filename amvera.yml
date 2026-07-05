@@ -12,6 +12,6 @@ run:
   scriptName: server.js
   scriptArguments: null
   nodeArguments: null
-  command: npx prisma db push && node server.js
+  command: sh -c "npx prisma db push && node server.js"
   persistenceMount: /data
   containerPort: "5000"
