@@ -2,12 +2,9 @@ meta:
   environment: node
   toolchain:
     name: npm
-    version: 22
+    version: 20
 build:
   additionalCommands:
     - npx prisma generate
 run:
   command: npx prisma db push && node server.js
-  persistence:
-    - mountPoint: /data
-      directory: data
