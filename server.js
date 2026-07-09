@@ -114,31 +114,31 @@ function renderStatusPage(title, message, isSuccess) {
 }
 
 // Лимитеры запросов (временно полностью отключаем проверку, чтобы обойти блокировку общего IP)
-const strictDailyLimiter = (req, res, next) => next();
-const adminLoginLimiter = (req, res, next) => next();
+// const strictDailyLimiter = (req, res, next) => next();
+// const adminLoginLimiter = (req, res, next) => next();
 
 // Лимитеры запросов
-// const strictDailyLimiter = rateLimit({
-//   windowMs: 24 * 60 * 60 * 1000,
-//   max: 5,
-//   message: {
-//     error: "Вы уже отправляли запрос сегодня. Пожалуйста, попробуйте завтра.",
-//   },
-//   standardHeaders: true,
-//   legacyHeaders: false,
-//   validate: false, // Отключаем строгую валидацию прокси, чтобы избежать ValidationError в Amvera
-// });
+const strictDailyLimiter = rateLimit({
+  windowMs: 24 * 60 * 60 * 1000,
+  max: 5,
+  message: {
+    error: "Вы уже отправляли запрос сегодня. Пожалуйста, попробуйте завтра.",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  validate: false, // Отключаем строгую валидацию прокси, чтобы избежать ValidationError в Amvera
+});
 
-// const adminLoginLimiter = rateLimit({
-//   windowMs: 24 * 60 * 60 * 1000,
-//   max: 5,
-//   message: {
-//     error: "Слишком много попыток входа. Доступ заблокирован на 24 часа.",
-//   },
-//   standardHeaders: true,
-//   legacyHeaders: false,
-//   validate: false, // Отключаем строгую валидацию прокси, чтобы избежать ValidationError в Amvera
-// });
+const adminLoginLimiter = rateLimit({
+  windowMs: 24 * 60 * 60 * 1000,
+  max: 5,
+  message: {
+    error: "Слишком много попыток входа. Доступ заблокирован на 24 часа.",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  validate: false, // Отключаем строгую валидацию прокси, чтобы избежать ValidationError в Amvera
+});
 
 // Настройка почты Яндекс
 const yandexTransporter = nodemailer.createTransport({
