@@ -30,10 +30,6 @@ const prisma = new PrismaClient({ adapter });
 export { prisma };
 const app = express();
 
-// ИСПРАВЛЕНИЕ: Включаем доверие к прокси-серверу Amvera.
-// Это необходимо для корректной работы защиты от спама.
-app.set("trust proxy", 1);
-
 // 1. Динамически определяем адрес фронтенда (Vercel в Сети или localhost на компьютере)
 const allowedOrigins = [
   "http://localhost:5173",
@@ -108,6 +104,7 @@ const strictDailyLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  validate: false, // Отключаем строгую валидацию прокси, чтобы избежать ValidationError в Amvera
 });
 
 const adminLoginLimiter = rateLimit({
@@ -118,6 +115,7 @@ const adminLoginLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  validate: false, // Отключаем строгую валидацию прокси, чтобы избежать ValidationError в Amvera
 });
 
 // Настройка почты Яндекс
