@@ -30,6 +30,10 @@ const prisma = new PrismaClient({ adapter });
 export { prisma };
 const app = express();
 
+// ИСПРАВЛЕНИЕ: Включаем доверие к прокси-серверу Amvera.
+// Это необходимо, чтобы куки авторизации (secure: true) успешно сохранялись в вашем браузере.
+app.set("trust proxy", 1);
+
 // 1. Динамически определяем адрес фронтенда (Vercel в Сети или localhost на компьютере)
 const allowedOrigins = [
   "http://localhost:5173",
@@ -50,6 +54,20 @@ app.use(
 
 app.use(express.json());
 app.use(cookieParser());
+
+// УМНЫЙ ПЕРЕХВАТЧИК КУК (Решает проблему "выбрасывания" из админки)
+// Автоматически добавляет флаги безопасности ко всем кукам, чтобы браузеры не блокировали их при работе между Amvera и Vercel
+app.use((req, res, next) => {
+  const originalCookie = res.cookie;
+  res.cookie = function (name, value, options = {}) {
+    return originalCookie.call(this, name, value, {
+      ...options,
+      secure: true,
+      sameSite: "none",
+    });
+  };
+  next();
+});
 
 let currentDynamicPassword = "Admin2026!";
 
@@ -95,28 +113,32 @@ function renderStatusPage(title, message, isSuccess) {
   `;
 }
 
-// Лимитеры запросов
-const strictDailyLimiter = rateLimit({
-  windowMs: 24 * 60 * 60 * 1000,
-  max: 5,
-  message: {
-    error: "Вы уже отправляли запрос сегодня. Пожалуйста, попробуйте завтра.",
-  },
-  standardHeaders: true,
-  legacyHeaders: false,
-  validate: false, // Отключаем строгую валидацию прокси, чтобы избежать ValidationError в Amvera
-});
+// Лимитеры запросов (временно полностью отключаем проверку, чтобы обойти блокировку общего IP)
+const strictDailyLimiter = (req, res, next) => next();
+const adminLoginLimiter = (req, res, next) => next();
 
-const adminLoginLimiter = rateLimit({
-  windowMs: 24 * 60 * 60 * 1000,
-  max: 5,
-  message: {
-    error: "Слишком много попыток входа. Доступ заблокирован на 24 часа.",
-  },
-  standardHeaders: true,
-  legacyHeaders: false,
-  validate: false, // Отключаем строгую валидацию прокси, чтобы избежать ValidationError в Amvera
-});
+// Лимитеры запросов
+// const strictDailyLimiter = rateLimit({
+//   windowMs: 24 * 60 * 60 * 1000,
+//   max: 5,
+//   message: {
+//     error: "Вы уже отправляли запрос сегодня. Пожалуйста, попробуйте завтра.",
+//   },
+//   standardHeaders: true,
+//   legacyHeaders: false,
+//   validate: false, // Отключаем строгую валидацию прокси, чтобы избежать ValidationError в Amvera
+// });
+
+// const adminLoginLimiter = rateLimit({
+//   windowMs: 24 * 60 * 60 * 1000,
+//   max: 5,
+//   message: {
+//     error: "Слишком много попыток входа. Доступ заблокирован на 24 часа.",
+//   },
+//   standardHeaders: true,
+//   legacyHeaders: false,
+//   validate: false, // Отключаем строгую валидацию прокси, чтобы избежать ValidationError в Amvera
+// });
 
 // Настройка почты Яндекс
 const yandexTransporter = nodemailer.createTransport({
