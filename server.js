@@ -30,10 +30,6 @@ const prisma = new PrismaClient({ adapter });
 export { prisma };
 const app = express();
 
-// ИСПРАВЛЕНИЕ: Включаем доверие к прокси-серверу Amvera.
-// Это необходимо, чтобы защита от спама (express-rate-limit) правильно определяла IP-адреса пользователей.
-app.set("trust proxy", 1);
-
 // 1. Динамически определяем адрес фронтенда (Vercel в Сети или localhost на компьютере)
 const allowedOrigins = [
   "http://localhost:5173",
