@@ -9,6 +9,12 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import rateLimit from "express-rate-limit";
 import crypto from "crypto";
+import fs from "fs";
+
+const isAmvera = fs.existsSync('/data');
+const databaseUrl = isAmvera ? "file:/data/dev.db" : "file:./dev.db";
+
+const backendUrl = isAmvera ? "https://john-back-elenafl.amvera.io" : "http://localhost:5000";
 
 // Гибридный импорт Prisma Client для поддержки ESM и CommonJS окружений
 let PrismaClient;
@@ -23,7 +29,7 @@ try {
 import { createClient } from "@libsql/client";
 import { PrismaLibSql } from "@prisma/adapter-libsql";
 
-const db = createClient({ url: "file:/data/dev.db" });
+const db = createClient({ url: databaseUrl });
 const adapter = new PrismaLibSql(db);
 const prisma = new PrismaClient({ adapter });
 
@@ -270,7 +276,7 @@ app.post("/api/subscribe", strictDailyLimiter, async (req, res) => {
       { expiresIn: "3d" },
     );
 
-    const serverUrl = process.env.BACKEND_URL || "http://localhost:5000";
+    const serverUrl = backendUrl;
     const approveLink = `${serverUrl}/api/moderate?token=${approveToken}&status=approve`;
     const rejectLink = `${serverUrl}/api/moderate?token=${rejectToken}&status=reject`;
 
