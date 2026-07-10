@@ -11,10 +11,12 @@ import rateLimit from "express-rate-limit";
 import crypto from "crypto";
 import fs from "fs";
 
-const isAmvera = fs.existsSync('/data');
+const isAmvera = fs.existsSync("/data");
 const databaseUrl = isAmvera ? "file:/data/dev.db" : "file:./dev.db";
 
-const backendUrl = isAmvera ? "https://john-back-elenafl.amvera.io" : "http://localhost:5000";
+const backendUrl = isAmvera
+  ? "https://john-back-elenafl.amvera.io"
+  : "http://localhost:5000";
 
 // Гибридный импорт Prisma Client для поддержки ESM и CommonJS окружений
 let PrismaClient;
@@ -91,14 +93,13 @@ function escapeHtml(string) {
   });
 }
 
-
 // Специализированная фильтрация для текстов статей:
 // Блокирует HTML-теги (<, >), но сохраняет кавычки и амперсанды для React
 function escapeTagsOnly(string) {
   return String(string).replace(/[<>]/g, function (s) {
     const entityMap = {
       "<": "&lt;",
-      ">": "&gt;"
+      ">": "&gt;",
     };
     return entityMap[s];
   });
@@ -694,7 +695,7 @@ app.post("/api/posts", authenticatetoken, async (req, res) => {
     // Для заголовка и текста применяем escapeTagsOnly (сохраняем кавычки)
     const safeTitle = escapeTagsOnly(newPostData.title.trim());
     const safeDescription = escapeTagsOnly(newPostData.description.trim());
-    
+
     const safeImg = newPostData.img ? escapeHtml(newPostData.img.trim()) : "";
 
     // Формируем строковую дату в формате, который был раньше
@@ -775,8 +776,12 @@ ${newPost.description || ""}
     const activeSubscribers = subResult.rows;
 
     if (activeSubscribers.length > 0) {
-      const chatId = process.env.TELEGRAM_CHAT_ID || "john_blog_news";
-      const cleanChannelName = chatId.replace("@", "").trim();
+      const rowChatId = process.env.TELEGRAM_CHAT_ID || "john_blog_news";
+      const cleanChannelName = rowChatId.replace(/[@'"]/g, "").trim();
+
+      // Очищаем имя канала от @ и от любых кавычек (' или "), 
+      // чтобы ссылка в письме была чистой: https://t.me/john_blog_news
+      const cleanChannelName = rawChatId.replace(/[@'"]/g, "").trim();
 
       const emailTemplate = {
         from: process.env.YANDEX_USER,
