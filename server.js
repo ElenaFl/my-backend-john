@@ -777,7 +777,6 @@ ${newPost.description || ""}
 
     if (activeSubscribers.length > 0) {
       const rowChatId = process.env.TELEGRAM_CHAT_ID || "john_blog_news";
-      const cleanChannelName = rowChatId.replace(/[@'"]/g, "").trim();
 
       // Очищаем имя канала от @ и от любых кавычек (' или "), 
       // чтобы ссылка в письме была чистой: https://t.me/john_blog_news
