@@ -91,6 +91,19 @@ function escapeHtml(string) {
   });
 }
 
+
+// Специализированная фильтрация для текстов статей:
+// Блокирует HTML-теги (<, >), но сохраняет кавычки и амперсанды для React
+function escapeTagsOnly(string) {
+  return String(string).replace(/[<>]/g, function (s) {
+    const entityMap = {
+      "<": "&lt;",
+      ">": "&gt;"
+    };
+    return entityMap[s];
+  });
+}
+
 // Шаблон страниц ответов модерации
 function renderStatusPage(title, message, isSuccess) {
   return `
@@ -665,7 +678,6 @@ app.get("/api/admin/posts", authenticatetoken, async (req, res) => {
 });
 
 // Создание поста администратором + Рассылка
-
 app.post("/api/posts", authenticatetoken, async (req, res) => {
   try {
     const newPostData = req.body;
@@ -679,8 +691,11 @@ app.post("/api/posts", authenticatetoken, async (req, res) => {
     }
 
     // Безопасное экранирование полей от XSS
-    const safeTitle = escapeHtml(newPostData.title.trim());
-    const safeDescription = escapeHtml(newPostData.description.trim());
+    // Для заголовка и текста применяем escapeTagsOnly (сохраняем кавычки)
+    const safeTitle = escapeTagsOnly(newPostData.title.trim());
+    const safeDescription = escapeTagsOnly(newPostData.description.trim());
+
+    // Для картинок и ссылок оставляем строгий escapeHtml
     const safeImg = newPostData.img ? escapeHtml(newPostData.img.trim()) : "";
 
     // Формируем строковую дату в формате, который был раньше
@@ -761,8 +776,10 @@ ${newPost.description || ""}
     const activeSubscribers = subResult.rows;
 
     if (activeSubscribers.length > 0) {
-      const chatId = process.env.TELEGRAM_CHAT_ID || "blogjohn";
-      const cleanChannelName = chatId.replace("@", "").trim();
+      const chatId = process.env.TELEGRAM_CHAT_ID || "john_blog_news";
+      // Если в .env указан числовой ID группы (начинается с "-"), для публичной ссылки используется имя канала
+      const cleanChannelName = chatId.startsWith("-") ? "john_blog_news" : chatId.replace("@", "").trim();
+      const telegramChannelUrl = `https://t.me/${cleanChannelName}`;
 
       const emailTemplate = {
         from: process.env.YANDEX_USER,
@@ -775,7 +792,7 @@ ${newPost.description || ""}
             <h2 style="color: #333;">${newPost.title}</h2>
             <p style="color: #666; line-height: 1.6;">${newPost.description ? newPost.description.substring(0, 250) : ""}...</p>
             <br />
-            <a href="https://t.me/${cleanChannelName}" target="_blank" style="display: inline-block; background-color: #0088cc; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">Читать в Telegram-канале</a>
+            <a href="${telegramChannelUrl}" target="_blank" style="display: inline-block; background-color: #0088cc; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">Читать в Telegram-канале</a>
           </div>
         `,
       };
