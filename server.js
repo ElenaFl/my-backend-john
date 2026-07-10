@@ -924,6 +924,8 @@ ${newPost.description || ""}
       const chatId = process.env.TELEGRAM_CHAT_ID || "blogjohn";
       const cleanChannelName = chatId.replace("@", "").trim();
 
+      console.log("cleanChannelName: "+cleanChannelName)
+
       const emailTemplate = {
         from: process.env.YANDEX_USER,
         subject: `Новая статья: ${newPost.title}`,
