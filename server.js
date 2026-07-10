@@ -854,17 +854,17 @@ app.put("/api/posts/:id", authenticatetoken, async (req, res) => {
     const tagsString = JSON.stringify(safeTags);
 
     // Выполняем UPDATE в базе данных SQLite
-    await db.execute({
-      sql: "UPDATE Post SET title = :title, description = :description, img = :img, date = :date, tags = :tags WHERE id = :id",
-      args: {
-        ":id": id,
-        ":title": safeTitle,
-        ":description": safeDescription,
-        ":img": safeImg,
-        ":date": safeDate,
-        ":tags": tagsString,
-      },
-    });
+    // await db.execute({
+    //   sql: "UPDATE Post SET title = :title, description = :description, img = :img, date = :date, tags = :tags WHERE id = :id",
+    //   args: {
+    //     ":id": id,
+    //     ":title": safeTitle,
+    //     ":description": safeDescription,
+    //     ":img": safeImg,
+    //     ":date": safeDate,
+    //     ":tags": tagsString,
+    //   },
+    // });
 
     const updatedPost = {
       id,
