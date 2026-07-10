@@ -679,153 +679,6 @@ app.get("/api/admin/posts", authenticatetoken, async (req, res) => {
 });
 
 // Создание поста администратором + Рассылка
-// app.post("/api/posts", authenticatetoken, async (req, res) => {
-//   try {
-//     const newPostData = req.body;
-
-//     // Валидация входных данных
-//     if (!newPostData.title || !newPostData.description) {
-//       return res.status(400).json({
-//         success: false,
-//         message: "Заголовок и описание обязательны для заполнения.",
-//       });
-//     }
-
-//     // Безопасное экранирование полей от XSS
-//     // Для заголовка и текста применяем escapeTagsOnly (сохраняем кавычки)
-//     const safeTitle = escapeTagsOnly(newPostData.title.trim());
-//     const safeDescription = escapeTagsOnly(newPostData.description.trim());
-
-//     const safeImg = newPostData.img ? escapeHtml(newPostData.img.trim()) : "";
-
-//     // Формируем строковую дату в формате, который был раньше
-//     const safeDate = newPostData.date
-//       ? escapeHtml(newPostData.date.trim())
-//       : new Date().toLocaleDateString("en-US", {
-//           month: "long",
-//           day: "numeric",
-//           year: "numeric",
-//         });
-
-//     // Безопасная обработка массива тегов
-//     let safeTags = [];
-//     if (Array.isArray(newPostData.tags)) {
-//       safeTags = newPostData.tags.map((tag) => escapeHtml(tag.trim()));
-//     }
-//     const tagsString = JSON.stringify(safeTags);
-
-//     // 1. Сохраняем в SQLite строго по колонкам из schema.prisma (id автоинкрементируется)
-//     const insertResult = await db.execute({
-//       sql: "INSERT INTO Post (title, description, img, date, tags) VALUES (:title, :description, :img, :date, :tags)",
-//       args: {
-//         ":title": safeTitle,
-//         ":description": safeDescription,
-//         ":img": safeImg,
-//         ":date": safeDate,
-//         ":tags": tagsString,
-//       },
-//     });
-
-//     // Извлекаем сгенерированный базой ID
-//     const newPostId = insertResult.lastInsertRowid
-//       ? insertResult.lastInsertRowid.toString()
-//       : "0";
-
-//     // Собираем объект поста для фронтенда (добавляем videoSrc и variant как виртуальные, если фронтенд их ищет)
-//     const newPost = {
-//       id: newPostId,
-//       title: safeTitle,
-//       description: safeDescription,
-//       img: safeImg,
-//       date: safeDate,
-//       tags: safeTags,
-//       videoSrc: newPostData.videoSrc
-//         ? escapeHtml(newPostData.videoSrc.trim())
-//         : "",
-//       variant: newPostData.variant
-//         ? escapeHtml(newPostData.variant.trim())
-//         : "post",
-//       createdAt: new Date().toISOString(),
-//     };
-
-//     // Форматирование тегов для Telegram
-//     const formattedTags = safeTags.join(" ");
-
-//     // Формируем текст сообщения для Telegram
-//     const messageText = `
-// <b> ВНИМАНИЕ! 🔥 НОВАЯ ПУБЛИКАЦИЯ В БЛОГЕ 🔥</b>
-// <br>━━━━━━━━━━━━━━━━━━━━━━━━━━<br><br>
-// <b>${newPost.title.toUpperCase()}</b>
-// <br><br>
-// ${newPost.description || ""}
-// <br><br>━━━━━━━━━━━━━━━━━━━━━━━━━━<br>
-// 📌 ${formattedTags}
-// <br><br>✍️ <i>Автор: Елена</i>
-// <br><br>👇 👇 👇
-//     `.trim();
-
-//     // Отправка в Telegram
-//     if (typeof sendToTelegram === "function") {
-//       await sendToTelegram(messageText);
-//     }
-
-//     // 2. Рассылка по активным подписчикам
-//     const subResult = await db.execute({
-//       sql: "SELECT * FROM Subscribers WHERE status = 'active'",
-//     });
-//     const activeSubscribers = subResult.rows;
-
-//     if (activeSubscribers.length > 0) {
-//       const rowChatId = process.env.TELEGRAM_CHAT_ID || "john_blog_news";
-
-//       // Очищаем имя канала от @ и от любых кавычек (' или "), 
-//       // чтобы ссылка в письме была чистой: https://t.me/john_blog_news
-//       const cleanChannelName = rawChatId.replace(/[@'"]/g, "").trim();
-
-//       const emailTemplate = {
-//         from: process.env.YANDEX_USER,
-//         subject: `Новая статья: ${newPost.title}`,
-//         html: `
-//           <div style="display: none; max-height: 0px; overflow: hidden; font-size: 1px; line-height: 1px; color: #fff; opacity: 0;">
-//             Узнайте подробности новой публикации в блоге: ${newPost.title}. ${newPost.description ? newPost.description.substring(0, 50) : ""}
-//           </div>
-//           <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eee; padding: 20px; border-radius: 8px;">
-//             <h2 style="color: #333;">${newPost.title}</h2>
-//             <p style="color: #666; line-height: 1.6;">${newPost.description ? newPost.description.substring(0, 250) : ""}...</p>
-//             <br />
-//             <a href="https://t.me/${cleanChannelName}" target="_blank" style="display: inline-block; background-color: #0088cc; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">Читать в Telegram-канале</a>
-//           </div>
-//         `,
-//       };
-
-//       activeSubscribers.forEach((subscriber) => {
-//         if (!subscriber.email) return;
-//         const cleanEmail = subscriber.email.trim().toLowerCase();
-//         yandexTransporter.sendMail(
-//           { ...emailTemplate, to: cleanEmail },
-//           (err) => {
-//             if (err)
-//               console.error(
-//                 `❌ Ошибка рассылки на адрес ${cleanEmail}:`,
-//                 err.message,
-//               );
-//           },
-//         );
-//       });
-//     }
-
-//     // Возвращаем успех фронтенду
-//     res.status(201).json({ success: true, post: newPost });
-//   } catch (error) {
-//     console.error("❌ Ошибка сервера при создании поста:", error);
-//     res
-//       .status(500)
-//       .json({ success: false, message: "Ошибка сервера при сохранении поста" });
-//   }
-// });
-
-// Создание поста администратором + Рассылка
-
 app.post("/api/posts", authenticatetoken, async (req, res) => {
   try {
     const newPostData = req.body;
@@ -968,6 +821,69 @@ ${newPost.description || ""}
   }
 });
 
+// Редактирование существующего поста админом (PUT)
+app.put("/api/posts/:id", authenticatetoken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const newPostData = req.body;
+
+    if (!newPostData.title || !newPostData.description) {
+      return res.status(400).json({
+        success: false,
+        message: "Заголовок и текст статьи обязательны для заполнения.",
+      });
+    }
+
+    // Сохраняем нормальные кавычки и абзацы, блокируя при этом HTML-теги
+    const safeTitle = escapeTagsOnly(newPostData.title.trim());
+    const safeDescription = escapeTagsOnly(newPostData.description.trim());
+    const safeImg = newPostData.img ? escapeHtml(newPostData.img.trim()) : "";
+
+    const safeDate = newPostData.date
+      ? escapeHtml(newPostData.date.trim())
+      : new Date().toLocaleDateString("en-US", {
+          month: "long",
+          day: "numeric",
+          year: "numeric",
+        });
+
+    let safeTags = [];
+    if (Array.isArray(newPostData.tags)) {
+      safeTags = newPostData.tags.map((tag) => escapeHtml(tag.trim()));
+    }
+    const tagsString = JSON.stringify(safeTags);
+
+    // Выполняем UPDATE в базе данных SQLite
+    await db.execute({
+      sql: "UPDATE Post SET title = :title, description = :description, img = :img, date = :date, tags = :tags WHERE id = :id",
+      args: {
+        ":id": id,
+        ":title": safeTitle,
+        ":description": safeDescription,
+        ":img": safeImg,
+        ":date": safeDate,
+        ":tags": tagsString,
+      },
+    });
+
+    const updatedPost = {
+      id,
+      title: safeTitle,
+      description: safeDescription,
+      img: safeImg,
+      date: safeDate,
+      tags: safeTags,
+      videoSrc: newPostData.videoSrc ? escapeHtml(newPostData.videoSrc.trim()) : "",
+      variant: newPostData.variant ? escapeHtml(newPostData.variant.trim()) : "post",
+    };
+
+    console.log(`📝 Пост с ID ${id} успешно отредактирован и сохранен!`);
+    res.json({ success: true, post: updatedPost });
+  } catch (error) {
+    console.error("❌ Ошибка сервера при редактировании поста:", error);
+    res.status(500).json({ success: false, message: "Ошибка сервера при обновлении поста" });
+  }
+});
 
 // Удаление поста администратором
 app.delete("/api/admin/posts/:id", authenticatetoken, async (req, res) => {
